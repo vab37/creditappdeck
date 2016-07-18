@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Predicting Credit Worthiness Of Customers</title>
+  <meta charset="utf-8">
+  <meta name="description" content="Predicting Credit Worthiness Of Customers">
+  <meta name="author" content="Vaibhav Agarwal">
+  <meta name="generator" content="slidify" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/default.css" media="all" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/phone.css" 
+    media="only screen and (max-device-width: 480px)" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/slidify.css" >
+  <link rel="stylesheet" href="libraries/highlighters/highlight.js/css/tomorrow.css" />
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->  <link rel=stylesheet href="./assets/css/ribbons.css"></link>
+
+  
+  <!-- Grab CDN jQuery, fall back to local if offline -->
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
+  <script>window.jQuery || document.write('<script src="libraries/widgets/quiz/js/jquery.js"><\/script>')</script> 
+  <script data-main="libraries/frameworks/io2012/js/slides" 
+    src="libraries/frameworks/io2012/js/require-1.0.8.min.js">
+  </script>
+  
+  
+
+</head>
+<body style="opacity: 0">
+  <slides class="layout-widescreen">
+    
+    <!-- LOGO SLIDE -->
+        <slide class="title-slide segue nobackground">
+  <hgroup class="auto-fadein">
+    <h1>Predicting Credit Worthiness Of Customers</h1>
+    <h2>A Slidify App</h2>
+    <p>Vaibhav Agarwal<br/></p>
+  </hgroup>
+  <article></article>  
+</slide>
+    
+
+    <!-- SLIDES -->
+    <slide class="" id="slide-1" style="background:;">
+  <hgroup>
+    <h2>About the app</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The <a href="https://vaibhavagarwal.shinyapps.io/creditapp/">Credit Worthiness Prediction App</a> takes different customer attributes and predicts the credit worthiness</p>
+
+<p>Customer Attributes it uses are:</p>
+
+<ul>
+<li>Customer Age in Years</li>
+<li>Whether Foreign Worker (Yes/No)</li>
+<li>Whether owns Real Estate (Yes/No)</li>
+<li>Whether howsing is owned (Yes/No)</li>
+<li>Whether critical account/ other credits existing (not at this bank)(Yes/No)</li>
+</ul>
+
+<p>Prediction Output on credit worthiness</p>
+
+<ul>
+<li>Good</li>
+<li>Bad</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-2" style="background:;">
+  <hgroup>
+    <h2>Methodology</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The app uses logistic regression model trained over GermanCredit data set available in the caret package. </p>
+
+<pre><code class="r">mod_fit &lt;- train(Class ~ Age + ForeignWorker + Property.RealEstate + Housing.Own + 
+    CreditHistory.Critical, data = training, method = &quot;glm&quot;, family = &quot;binomial&quot;)
+</code></pre>
+
+<p>The predicted values are returned to the app using a prediction function</p>
+
+<pre><code class="r">predCredit &lt;- function(inpAge, inpForeignWorker, inpProperty.RealEstate, inpHousing.Own, 
+    inpCreditHistory.Critical) {
+    pred = predict(mod_fit, newdata = data.frame(Age = inpAge, ForeignWorker = inpForeignWorker, 
+        Property.RealEstate = inpProperty.RealEstate, Housing.Own = inpHousing.Own, 
+        CreditHistory.Critical = inpCreditHistory.Critical))
+    as.character(pred)
+}
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-3" style="background:;">
+  <hgroup>
+    <h2>UI Features (ui.R)</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The UI uses a mix of slider and radio buttons to accept different inputs </p>
+
+<pre><code class="r">ui &lt;- fluidPage(
+  ...
+
+    sliderInput(inputId = &quot;iAge&quot;,label = &quot;Customer Age in Years&quot;, 
+                value= 40, min = 18, max = 80),
+    radioButtons(&quot;iForeignWorker&quot;, &quot;Whether Foreign Worker (Yes/No)&quot;,
+               c(&quot;No&quot; = &quot;0&quot;,
+                 &quot;Yes&quot; = &quot;1&quot;
+                 ),selected=&quot;1&quot;),
+    radioButtons(&quot;iProperty.RealEstate&quot;, &quot;Whether owns Real Estate (Yes/No)&quot;,
+               c(&quot;No&quot; = &quot;0&quot;,
+                 &quot;Yes&quot; = &quot;1&quot;
+               )),
+ ...
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-4" style="background:;">
+  <hgroup>
+    <h2>Server Features (server.R)</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The UI uses a mix of slider and radio buttons to accept different inputs </p>
+
+<pre><code class="r">source(&quot;predfunc.R&quot;)
+library(shiny)
+server &lt;- function(input, output) {
+    output$prediction &lt;- renderPrint({
+        predCredit(input$iAge, as.numeric(as.character(input$iForeignWorker)), 
+            as.numeric(as.character(input$iProperty.RealEstate)), as.numeric(as.character(input$iHousing.Own)), 
+            as.numeric(as.character(input$iCreditHistory.Critical)))
+    })
+}
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-5" style="background:;">
+  <hgroup>
+    <h2>App Benefit</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>The app can provide a simple interface for credit assessment. </li>
+<li>The various predictors can be tweeked to understand the impact on overall credit worthiness</li>
+<li>The underlying model can learn from the manual credit worthiness assessment history and help standardize decisions across organization with the help of the app</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+    <slide class="backdrop"></slide>
+  </slides>
+  <div class="pagination pagination-small" id='io2012-ptoc' style="display:none;">
+    <ul>
+      <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=1 title='About the app'>
+         1
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=2 title='Methodology'>
+         2
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=3 title='UI Features (ui.R)'>
+         3
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=4 title='Server Features (server.R)'>
+         4
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=5 title='App Benefit'>
+         5
+      </a>
+    </li>
+  </ul>
+  </div>  <!--[if IE]>
+    <script 
+      src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js">  
+    </script>
+    <script>CFInstall.check({mode: 'overlay'});</script>
+  <![endif]-->
+</body>
+  <!-- Load Javascripts for Widgets -->
+  
+  <!-- LOAD HIGHLIGHTER JS FILES -->
+  <script src="libraries/highlighters/highlight.js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <!-- DONE LOADING HIGHLIGHTER JS FILES -->
+   
+  </html>
